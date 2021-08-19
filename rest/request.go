@@ -1331,9 +1331,13 @@ func (r Result) Into(obj runtime.Object) error {
 			r.statusCode, r.contentType)
 	}
 
-	out, _, err := r.decoder.Decode(r.body, nil, obj)
-	if err != nil || out == obj {
+	out, gvk, err := r.decoder.Decode(r.body, nil, obj)
+	if err != nil {
 		return err
+	}
+	if out == obj {
+		obj.GetObjectKind().SetGroupVersionKind(*gvk)
+		return nil
 	}
 	// if a different object is returned, see if it is Status and avoid double decoding
 	// the object.
